@@ -34,8 +34,8 @@ print 'Re={}'.format(Re)
 #      sphere: dx = 0.14, dt = 0.012, u0 = 0.18, v0 = 3e-6, vmin = -.206 , vmax = .4454
 #
 # Re=30,000
-#     barrier: dx = 0.10, dt = 0.012, u0 = 0.18, v0 = 6e-6, f_copy = OFF, vmin =  , vmax = 
-#      sphere: dx = 0.14, dt = 0.012, u0 = 0.18, v0 = 6e-6, f_copy = ON, vmin = -.18 , vmax = .4081
+#     barrier: dx = 0.10, dt = 0.012, u0 = 0.18, v0 = 6e-6, vmin =  , vmax = 
+#      sphere: dx = 0.14, dt = 0.012, u0 = 0.18, v0 = 6e-6, vmin = -.18 , vmax = .4081
 # -----------------------------
 
 # ----- intializing number density ----- 
