@@ -30,8 +30,8 @@ print 'Re={}'.format(Re)
 
 # ------ final sim params -----
 # Re=60,000
-#     barrier: dx = 0.10, dt = 0.012, u0 = 0.18, v0 = 3e-6, f_copy = OFF, vmin = -0.1978 , vmax =  0.4412 
-#      sphere: dx = 0.14, dt = 0.012, u0 = 0.18, v0 = 3e-6, f_copy = ON, vmin = -.206 , vmax = .4454
+#     barrier: dx = 0.10, dt = 0.012, u0 = 0.18, v0 = 3e-6, vmin = -0.1978 , vmax =  0.4412 
+#      sphere: dx = 0.14, dt = 0.012, u0 = 0.18, v0 = 3e-6, vmin = -.206 , vmax = .4454
 #
 # Re=30,000
 #     barrier: dx = 0.10, dt = 0.012, u0 = 0.18, v0 = 6e-6, f_copy = OFF, vmin =  , vmax = 
