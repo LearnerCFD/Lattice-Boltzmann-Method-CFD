@@ -1,12 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
-from pylab import imshow
 from numba import jit
 
 height = 100 # lattice y length 
 width = 200  # lattice x length
-dx = 0.14   # distance step
+dx = 0.10   # distance step
 dt = 0.012  # timestep
 
 u0 = 0.18   # driven velocity
@@ -24,18 +23,16 @@ Re =u_D * L_D / v_D  # Reynold's number
 
 cs = U0 / np.sqrt(3)       # lattice speed of sound
 tau = v0 / cs**2 + dt/2.   # relaxation constant 
-omega = dt / tau           # 
-
-print 'Re={}'.format(Re)
+omega = dt / tau           
 
 # ------ final sim params -----
 # Re=60,000
-#     barrier: dx = 0.10, dt = 0.012, u0 = 0.18, v0 = 3e-6, vmin = -0.1978 , vmax =  0.4412 
-#      sphere: dx = 0.14, dt = 0.012, u0 = 0.18, v0 = 3e-6, vmin = -.206 , vmax = .4454
+#     barrier: dx = 0.10, dt = 0.012, u0 = 0.18, v0 = 3e-6,
+#      sphere: dx = 0.15, dt = 0.012, u0 = 0.18, v0 = 3e-6, 
 #
 # Re=30,000
-#     barrier: dx = 0.10, dt = 0.012, u0 = 0.18, v0 = 6e-6, vmin =  , vmax = 
-#      sphere: dx = 0.14, dt = 0.012, u0 = 0.18, v0 = 6e-6, vmin = -.18 , vmax = .4081
+#     barrier: dx = 0.10, dt = 0.012, u0 = 0.18, v0 = 6e-6, 
+#      sphere: dx = 0.15, dt = 0.012, u0 = 0.18, v0 = 6e-6, 
 # -----------------------------
 
 # ----- intializing number density ----- 
@@ -68,11 +65,14 @@ wallbot = np.zeros((height,width), bool)
 wallbot[-1,:] = True
 
 barrier = np.zeros((height,width), bool)
-barrier_front = np.zeros((height,width), bool)
+barrier_outside = np.zeros((height,width), bool)
 
 # ----- barrier initialization -----
 #barrier[int(height/2.-7):int(height/2.+7), int(3*width/4.)] = True
-#barrier_front[int(height/2.-7):int(height/2.+7), int(3*width/4.+1)] = True
+#barrier_outside[int(height/2.-7):int(height/2.+7), int(3*width/4.+1)] = True
+#barrier_outside[int(height/2.-7):int(height/2.+7), int(3*width/4.-1)] = True
+#barrier_outside[int(height/2.-8),int(3*width/4.)] = True
+#barrier_outside[int(height/2.+8),int(3*width/4.)] = True
 # ----------------------------------
 
 # ----- sphere initialization -----
@@ -80,10 +80,15 @@ for y in range(-height, height) :
     for x in range(-width, width) :
         if np.sqrt(x**2 + y**2) < 20. : 
             barrier[int(y+height/2), int(x+3*width/4)] = True
-barrier_front[range(31,70),np.array([156,158,160,161,163,164,165,165,166,167,167,168,168,169,169,169,169,169,169,169,169,169,169,169,169,169,168,168,167,167,166,165,165,164,163,161,160,158,156])+1] = True
+        if 20. < np.sqrt(x**2 + y**2) < 21. :
+            barrier_outside[int(y+height/2), int(x+3*width/4)] = True
+barrier_outside[int(height/2-20), int(3*width/4)] = True
+barrier_outside[int(height/2+20), int(3*width/4)] = True
+barrier_outside[int(height/2), int(3*width/4-20)] = True
+barrier_outside[int(height/2), int(3*width/4+20)] = True
 # ---------------------------------
 
-@jit(nopython=True)  #  81.8 ms -> 46.4 ms
+@jit(nopython=True) 
 def stream(x, y, height, width, f_copy)  :           
     return np.array([f_copy[min(y+1,height-1), x-1, 0],     
                     f_copy[min(y+1,height-1), x, 1],
@@ -97,7 +102,6 @@ def stream(x, y, height, width, f_copy)  :
 
 global rho_tot, uxs, px_tot, py_tot
 rho_tot = []
-uxs = []
 px_tot = []
 py_tot = []
 
@@ -110,13 +114,12 @@ def step() :
     rho_tot.append(sum(rho.reshape(-1)))
     
     ux = (f[:,:,2] + f[:,:,5] + f[:,:,8] - (f[:,:,0] + f[:,:,3] + f[:,:,6])) / rho
-    uxs.append(ux)
     uy = (f[:,:,0] + f[:,:,1] + f[:,:,2] - (f[:,:,6] + f[:,:,7] + f[:,:,8])) / rho
     u = np.sqrt(ux**2 + uy**2)
     eu = np.array([uy-ux, uy, ux+uy, -ux, 0, ux, -uy-ux, -uy, -uy+ux]) # velocity vectors
     
-    px = f[barrier_front][:,0] * -ux[barrier_front] + f[barrier_front][:,3] * -ux[barrier_front] + f[barrier_front][:,6] * -ux[barrier_front] # eq.(7)
-    py = f[barrier_front][:,0] * uy[barrier_front] + f[barrier_front][:,6] * -uy[barrier_front] # eq.(7)
+    px = f[barrier_outside][:,0] * -ux[barrier_outside] + f[barrier_outside][:,3] * -ux[barrier_outside] + f[barrier_outside][:,6] * -ux[barrier_outside] # eq.(7)
+    py = f[barrier_outside][:,0] * uy[barrier_outside] + f[barrier_outside][:,6] * -uy[barrier_outside] # eq.(7)
     px_tot.append(sum(px))
     py_tot.append(sum(py))
     
@@ -148,16 +151,16 @@ def step() :
     f[wallbot, 1] = f_copy[wallbot, 7]      # bounceback bottom
     f[wallbot, 0] = f_copy[wallbot, 6]
     
-    f[barrier, 3] = f[barrier, 5]      # barrier object bounceback
-    f[barrier, 0] = f[barrier, 8]
-    f[barrier, 6] = f[barrier, 2]
+    f[barrier_outside, 3] = f[barrier_outside, 5]      # barrier object bounceback
+    f[barrier_outside, 0] = f[barrier_outside, 8]
+    f[barrier_outside, 6] = f[barrier_outside, 2]
     
-    f[barrier, 2] = f_copy[barrier, 6]
-    f[barrier, 5] = f_copy[barrier, 3]
-    f[barrier, 8] = f_copy[barrier, 0]
+    f[barrier_outside, 2] = f_copy[barrier_outside, 6]
+    f[barrier_outside, 5] = f_copy[barrier_outside, 3]
+    f[barrier_outside, 8] = f_copy[barrier_outside, 0]
     
-    f[barrier, 1] = f[barrier, 7]
-    f[barrier, 7] = f_copy[barrier, 1]
+    f[barrier_outside, 1] = f[barrier_outside, 7]
+    f[barrier_outside, 7] = f_copy[barrier_outside, 1]
     
     return rho, ux, uy, u
 
@@ -167,20 +170,20 @@ def animation() :
     z = ux
     fig = plt.figure()
     ax = fig.gca()
-    surf = ax.imshow(z, cmap = 'jet', interpolation='none', vmin=-.18 , vmax=.4081)
+    surf = ax.imshow(z, cmap = 'jet', interpolation='none')#, vmin=-.18 , vmax=.4081)
     plt.xticks([])
     plt.yticks([])
     
-    def update_data(i, z, surf) :
+    def update_data(i, z, surf) : 
         rho, ux, uy, u = step()
         z = ux
         z[barrier] = -.35
         ax.clear()
-        ax.text(0,height-1,('step {}'.format(i)))
+        ax.text(0,height-1,('frame {}'.format(i)))
         plt.xticks([])
         plt.yticks([])
         plt.title('$Re = {}$'.format(Re))
-        surf = ax.imshow(z, cmap = 'jet', interpolation='none', vmin=-.18 , vmax=.4081)
+        surf = ax.imshow(z, cmap = 'jet', interpolation='none')#, vmin=-.18 , vmax=.4081)
         return surf,
 
     anim = manimation.FuncAnimation(fig, update_data, fargs = (z,surf), interval = 1, blit = False, repeat = True)
