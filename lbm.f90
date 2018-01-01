@@ -1,22 +1,16 @@
 program lbm
 
 implicit none
-!include 'mpif.h'
+include 'mpif.h'
 
 integer :: height, width, i, j, k, N
 real :: omega, u0
-!integer :: stat(MPI_STATUS_SIZE)
-!integer :: ierr,rank,ncpu
 
 ! array declaration
 real, dimension (9) :: w
 real, dimension (200, 400, 9) :: f, f_eq, f_copy
 real, dimension (200, 400) :: rho, ux, uy, u, zeros
 real, dimension (9, 200, 400) :: eu
-
-!call MPI_INIT(ierr)
-!call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
-!call MPI_COMM_SIZE(MPI_COMM_WORLD,ncpu,ierr)
 
 height = 200
 width = 400
