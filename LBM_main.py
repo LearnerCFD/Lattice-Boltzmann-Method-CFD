@@ -29,7 +29,6 @@ omega = dt / tau
 # Re=60,000
 #     barrier: dx = 0.10, dt = 0.012, u0 = 0.18, v0 = 3e-6,
 #      sphere: dx = 0.15, dt = 0.012, u0 = 0.18, v0 = 3e-6, 
-#
 # Re=30,000
 #     barrier: dx = 0.10, dt = 0.012, u0 = 0.18, v0 = 6e-6, 
 #      sphere: dx = 0.15, dt = 0.012, u0 = 0.18, v0 = 6e-6, 
@@ -53,8 +52,8 @@ f_eq = np.ones((height, width, 9)) # equilibrium number density
 
 #----- initalizing macroscopic quantities
 rho = np.ones((height, width))
-ux = (f[:,:,2] + f[:,:,5] + f[:,:,8] - (f[:,:,0] + f[:,:,3] + f[:,:,6])) / rho # eq.(7)
-uy = (f[:,:,0] + f[:,:,1] + f[:,:,2] - (f[:,:,6] + f[:,:,7] + f[:,:,8])) / rho
+ux = (flow[:,:,1] + flow[:,:,5] + flow[:,:,8] - (flow[:,:,3] + flow[:,:,6] + flow[:,:,7])) / rho
+uy = (flow[:,:,2] + flow[:,:,5] + flow[:,:,6] - (flow[:,:,4] + flow[:,:,7] + flow[:,:,8])) / rho
 u = np.sqrt(ux**2 + uy**2)
 
 #------ initialize borders ------
